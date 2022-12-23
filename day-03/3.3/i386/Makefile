@@ -24,20 +24,22 @@ os_lst_file=$(target_dir)/hello.lst
 QEMU=qemu-system-i386
 
 all:$(target_img_file)
+	
 
-pre_make:mkdir -p $(target_dir)
-
-$(os_bin_file): $(os_src_file) $(os_link_script) pre_make
+$(os_bin_file): $(os_src_file) $(os_link_script) 
+	mkdir -p $(target_dir)
 	gcc -nostdlib -o $@ -T $(os_link_script) $(os_src_file)
-	gcc -T $(os_link_script) -c -g -Wa,-a,-ad $(os_src_file) -o > $(os_lst_file)
+	gcc -T $(os_link_script) -c -g -Wa,-a,-ad $(os_src_file) -o $(os_obj_file)> $(os_lst_file)
 
-$(ipl_bin_file): $(ipl_src_file) $(ipl_link_script) pre_make
+$(ipl_bin_file): $(ipl_src_file) $(ipl_link_script) 
+	mkdir -p $(target_dir)
 	gcc -nostdlib -o $@ -T $(ipl_link_script) $(ipl_src_file)
-	gcc -T $(ipl_link_script) -c -g -Wa,-a,-ad $(ipl_src_file) -o > $(ipl_lst_file)
-$(bootpack_bin_file):$(bootpack_src_file) pre_make
+	gcc -T $(ipl_link_script) -c -g -Wa,-a,-ad $(ipl_src_file) -o $(ipl_obj_file) > $(ipl_lst_file)
+$(bootpack_bin_file):$(bootpack_src_file) 
+	mkdir -p $(target_dir)
 	gcc -nostdlib -m32 -T $(bootpack_link_script) -o $@ $(bootpack_src_file)
 
-$(system_img_file): $(os_bin_file) $(ipl_bin_file)
+$(system_img_file): $(os_bin_file) $(bootpack_bin_file)
 	cat $(os_bin_file) $(bootpack_bin_file) > $@
 $(target_img_file): $(system_img_file) $(ipl_bin_file)
 	mformat -f 1440 -B $(ipl_bin_file) -C -i $(target_img_file) ::

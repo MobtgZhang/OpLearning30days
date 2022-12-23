@@ -50,7 +50,7 @@
     movl    %cr0,%eax
     andl    $0x7fffffff,%eax
     orl     $0x00000001,%eax
-    movl    %eax,$cr0
+    movl    %eax,%cr0
     jmp     pipeline_flush
 pipeline_flush:
     # 初始化寄存器
@@ -75,8 +75,9 @@ pipeline_flush:
 # 将剩下全部的复制到对应的内存地址当中
     movl    $DSKCAC0+512,%esi
     movl    $DSKCAC+512,%edi
-    movb    $0,%ecx
-    imull   $512*18*2/4,$ecx
+    movl    $0, %ecx
+    movb    (CYLS), %cl
+    imull   $512*18*2/4,%ecx
     sub     $512/4,%ecx
     call    memcpy
 # bootpack启动位置
