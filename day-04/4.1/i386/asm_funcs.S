@@ -10,6 +10,6 @@ io_hlt:
 
 write_mem8:
     movl        4(%esp),%ecx
-    movl        8(%esp),%al
+    movb        8(%esp),%al
     mov         %al,(%ecx)
     ret

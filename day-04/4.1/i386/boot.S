@@ -77,7 +77,7 @@ pipeline_flush:
     movl    $DSKCAC+512,%edi
     movl    $0,%ecx
     movb    (CYLS), %cl
-    imull   $512*18*2/4,$ecx
+    imull   $512*18*2/4,%ecx
     sub     $512/4,%ecx
     call    memcpy
 # bootpack启动位置
