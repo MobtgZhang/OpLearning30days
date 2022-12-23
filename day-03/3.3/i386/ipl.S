@@ -22,6 +22,8 @@ jmp entry
 .skip   18,0 # padding?
 
 .set CYLS, 10
+.set OTHER_CYLS,0xff0
+
 entry:
     # 初始化寄存器
     movw    $0,%ax
@@ -74,7 +76,7 @@ next:
     add     $0x01,%ch
     cmp     $CYLS,%ch
     jb      read_loop
-
+    movb    $CYLS,(OTHER_CYLS)
     jmp     0xc200
 
 finish:
