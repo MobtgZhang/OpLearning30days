@@ -8,7 +8,7 @@ os_src_file=boot.S
 bootpack_src_file=bootpack.c
 sprintf_src_file=sprintf.c
 asm_lib_src=asm_funcs.S
-font_src_file=def_fonts.s
+font_src_file=fonts.S
 
 
 target_dir=build
@@ -21,7 +21,7 @@ os_obj_file=$(target_dir)/boot.o
 ipl_obj_file=$(target_dir)/ipl.o
 bootpack_obj_file=$(target_dir)/bootpack.o
 sprintf_obj_file=$(target_dir)/sprintf.o
-font_bin_file=$(target_dir)/def_fonts.o
+font_bin_file=$(target_dir)/fonts.o
 
 
 system_img_file=$(target_dir)/system.img
@@ -31,7 +31,7 @@ target_img_file=$(target_dir)/boot.img
 ipl_lst_file=$(target_dir)/ipl.lst
 os_lst_file=$(target_dir)/os.lst
 asm_lib_lst_file=$(target_dir)/asm_func.lst
-font_lst_file=$(target_dir)/def_fonts.lst
+font_lst_file=$(target_dir)/fonts.lst
 QEMU=qemu-system-x86_64
 
 all:$(target_img_file)

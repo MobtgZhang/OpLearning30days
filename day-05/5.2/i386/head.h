@@ -125,9 +125,9 @@ void init_screen(char *vram, int xsize, int ysize){
     boxfill8(vram, xsize, COL8_FFFFFF, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
 }
 void putfonts8_asc(char* varm,int xsize,int x,int y,char c,unsigned char *s){
-    extern char hankaku[4096];
+    extern char fonts_set[4096];
     while( *s !='\0'){
-        putfont8(varm,xsize,x,y,c,(hankaku + *s*16));
+        putfont8(varm,xsize,x,y,c,(fonts_set + *s*16));
         x += 8;
         s++;
     }
