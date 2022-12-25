@@ -13,7 +13,7 @@ void set_palette(int start,int end,unsigned char * rgb){
         rgb += 3;
     }
     /*恢复标志位*/
-    io_store_eflags();
+    io_store_eflags(eflags);
     return ;
 }
 /*初始化调色板*/
