@@ -28,7 +28,7 @@ void io_cli(void);
 void io_out8(int port,int data);
 /*用于加载和修改EFLAGS寄存器的函数*/
 int io_load_eflags(void);
-void io_store_eflags(void);
+void io_store_eflags(int eflags);
 #endif
 
 #ifndef HEAD_H
@@ -47,7 +47,7 @@ void set_palette(int start,int end,unsigned char * rgb){
         rgb += 3;
     }
     /*恢复标志位*/
-    io_store_eflags();
+    io_store_eflags(eflags);
     return ;
 }
 /*初始化调色板*/
