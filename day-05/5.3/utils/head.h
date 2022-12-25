@@ -28,7 +28,7 @@ void io_cli(void);
 void io_out8(int port,int data);
 /*用于加载和修改EFLAGS寄存器的函数*/
 int io_load_eflags(void);
-void io_store_eflags(void);
+void io_store_eflags(int eflags);
 #endif
 
 #ifndef PALETTE_H
