@@ -1,0 +1,188 @@
+GAS LISTING /tmp/ccVnSJiL.s 			page 1
+
+
+   1              	# 1 "src/asm/boot/boot.S"
+   1              	.text
+   1              	...
+   0              	
+   0              	
+   1              	/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   2              	.code16
+   3              	.set BOTPAK, 0x00280000 # 加载bootpack文件的目标位置
+   4              	.set DSKCAC, 0x00100000 # 磁盘缓存位置
+   5              	.set DSKCAC0,0x00008000 # 实模式下磁盘缓存位置
+   6              	
+   7              	# 启动信息
+   8              	.set CYLS,0x0ff0
+   9              	.set LEDS,0x0ff1        # 设置键盘LED指示灯
+  10              	.set VMODE,0x0ff2       # 设置显示器颜色数目
+  11              	.set SCRANX,0x0ff4      # 设置显示器的X坐标
+  12              	.set SCRANY,0x0ff6      # 设置显示器的Y坐标
+  13              	.set VRAM,0x0ff8        # 设置显存首地址
+  14              	
+  15              	    # 设置显示模式
+  16 0000 B013     	    movb    $0x13,%al       # 320*200*8bit 显示器
+  17 0002 B400     	    movb    $0x00,%ah
+  18 0004 CD10     	    int     $0x10
+  19              	
+  20              	    # 保存显示器信息
+  21 0006 C606F20F 	    movb    $8,(VMODE)
+  21      08
+  22 000b C706F40F 	    movw    $320,(SCRANX)
+  22      4001
+  23 0011 C706F60F 	    movw    $200,(SCRANY)
+  23      C800
+  24 0017 66C706F8 	    movl    $0x000a0000,(VRAM)
+  24      0F00000A 
+  24      00
+  25              	
+  26              	    # 从BIOS加载键盘LED的信息
+  27 0020 B402     	    movb    $0x02,%ah
+  28 0022 CD16     	    int     $0x16
+  29 0024 A2F10F   	    movb    %al,(LEDS)
+  30              	
+  31              	    # AT兼容机的规格中，PIC的初始化需要在CLI前进行
+  32 0027 B0FF     	    movb    $0xff,%al
+  33 0029 E621     	    outb    %al,$0x21
+  34 002b 90       	    nop 
+  35 002c E6A1     	    outb    %al,$0xa1
+  36              	    
+  37 002e FA       	    cli                     # 屏蔽所有的CPU中断信息
+  38              	    # 设置A20GATE,允许访问1MB以上的内存
+  39 002f E8B200   	    call    waitkbout
+  40 0032 B0D1     	    movb    $0xd1,%al
+  41 0034 E664     	    outb    %al,$0x64
+  42 0036 E8AB00   	    call    waitkbout
+  43 0039 B0DF     	    movb    $0xdf,%al
+  44 003b E660     	    outb    %al,$0x60
+  45 003d E8A400   	    call    waitkbout
+  46              	
+  47              	# 保护模式，进入i486汇编模式
+GAS LISTING /tmp/ccVnSJiL.s 			page 2
+
+
+  48              	.arch   i486
+  49 0040 0F01162A 	    lgdt    (GDTR0)             # 指定GDT
+  49      01
+  50 0045 0F20C0   	    movl    %cr0,%eax
+  51 0048 6625FFFF 	    andl    $0x7fffffff,%eax
+  51      FF7F
+  52 004e 6683C801 	    orl     $0x00000001,%eax
+  53 0052 0F22C0   	    movl    %eax,%cr0
+  54 0055 EB00     	    jmp     pipeline_flush
+  55              	pipeline_flush:
+  56              	    # 初始化寄存器
+  57 0057 B80800   	    movw    $1*8,%ax
+  58 005a 8ED8     	    movw    %ax,%ds
+  59 005c 8EC0     	    movw    %ax,%es
+  60 005e 8EE0     	    movw    %ax,%fs
+  61 0060 8EE8     	    movw    %ax,%gs
+  62 0062 8ED0     	    movw    %ax,%ss
+  63              	
+  64              	# 传送到bootpack地址处，将bootpack处的二进制指令搬运到这里
+  65 0064 66BE3001 	    movl    $bootpack,%esi
+  65      0000
+  66 006a 66BF0000 	    movl    $BOTPAK,%edi
+  66      2800
+  67 0070 66B90000 	    movl    $512*1024/4,%ecx
+  67      0200
+  68 0076 E87200   	    call    memcpy
+  69              	# 将磁盘数据传输到原始位置
+  70              	# 引导扇区
+  71 0079 66BE007C 	    movl    $0x7c00,%esi
+  71      0000
+  72 007f 66BF0000 	    movl    $DSKCAC,%edi
+  72      1000
+  73 0085 66B98000 	    movl    $512/4,%ecx
+  73      0000
+  74 008b E85D00   	    call    memcpy
+  75              	# 将剩下全部的复制到对应的内存地址当中
+  76 008e 66BE0082 	    movl    $DSKCAC0+512,%esi
+  76      0000
+  77 0094 66BF0002 	    movl    $DSKCAC+512,%edi
+  77      1000
+  78 009a 66B90000 	    movl    $0,%ecx
+  78      0000
+  79 00a0 8A0EF00F 	    movb    (CYLS), %cl
+  80 00a4 6669C900 	    imull   $512*18*2/4,%ecx
+  80      120000
+  81 00ab 6681E980 	    sub     $512/4,%ecx
+  81      000000
+  82 00b2 E83600   	    call    memcpy
+  83              	# bootpack启动位置
+  84 00b5 66BB0000 	    movl    $BOTPAK,%ebx
+  84      2800
+  85 00bb 67668B4B 	    movl    16(%ebx),%ecx
+  85      10
+  86 00c0 6683C103 	    add     $3,%ecx
+  87 00c4 66C1E902 	    shr     $2,%ecx             # 相当于(ecx+3)/4
+  88 00c8 7410     	    jz      skip
+  89 00ca 67668B73 	    movl    20(%ebx),%esi
+GAS LISTING /tmp/ccVnSJiL.s 			page 3
+
+
+  89      14
+  90 00cf 6601DE   	    add     %ebx,%esi
+  91 00d2 67668B7B 	    movl    12(%ebx),%edi
+  91      0C
+  92 00d7 E81100   	    call    memcpy
+  93              	
+  94              	skip:
+  95 00da 67668B63 	    mov     12(%ebx),%esp       # 初始化栈顶指针
+  95      0C
+  96 00df EA1B0010 	    ljmp    $2*8,$0x0000001b    # 双字跳转
+  96      00
+  97              	
+  98              	waitkbout:
+  99 00e4 E464     	    inb     $0x64,%al
+ 100 00e6 2402     	    andb    $0x02,%al
+ 101 00e8 75FA     	    jnz     waitkbout
+ 102 00ea C3       	    ret
+ 103              	
+ 104              	memcpy:
+ 105 00eb 67668B06 	    movl    (%esi),%eax
+ 106 00ef 6683C604 	    add     $4,%esi
+ 107 00f3 67668907 	    movl    %eax,(%edi)
+ 108 00f7 6683C704 	    add     $4,%edi
+ 109 00fb 6683E901 	    sub     $1,%ecx
+ 110 00ff 75EA     	    jnz     memcpy
+ 111 0101 C3       	    ret
+ 112              	
+ 113 0102 EB0C8DB4 	.align 16
+ 113      00008DB4 
+ 113      00008DB4 
+ 113      0000
+ 114              	GDT0:
+ 115 0110 00000000 	    .skip 8, 0x00
+ 115      00000000 
+ 116 0118 FFFF0000 	    .word 0xffff, 0x0000, 0x9200, 0x00cf
+ 116      0092CF00 
+ 117 0120 FFFF0000 	    .word 0xffff, 0x0000, 0x9a28, 0x0047
+ 117      289A4700 
+ 118 0128 0000     	    .word 0x0000
+ 119              	GDTR0:
+ 120 012a 1700     	    .word 8*3-1
+ 121 012c 10010000 	    .int GDT0
+ 122              	bootpack:
+GAS LISTING /tmp/ccVnSJiL.s 			page 4
+
+
+DEFINED SYMBOLS
+ src/asm/boot/boot.S:3      *ABS*:0000000000280000 BOTPAK
+ src/asm/boot/boot.S:4      *ABS*:0000000000100000 DSKCAC
+ src/asm/boot/boot.S:5      *ABS*:0000000000008000 DSKCAC0
+ src/asm/boot/boot.S:8      *ABS*:0000000000000ff0 CYLS
+ src/asm/boot/boot.S:9      *ABS*:0000000000000ff1 LEDS
+ src/asm/boot/boot.S:10     *ABS*:0000000000000ff2 VMODE
+ src/asm/boot/boot.S:11     *ABS*:0000000000000ff4 SCRANX
+ src/asm/boot/boot.S:12     *ABS*:0000000000000ff6 SCRANY
+ src/asm/boot/boot.S:13     *ABS*:0000000000000ff8 VRAM
+ src/asm/boot/boot.S:98     .text:00000000000000e4 waitkbout
+ src/asm/boot/boot.S:119    .text:000000000000012a GDTR0
+ src/asm/boot/boot.S:55     .text:0000000000000057 pipeline_flush
+ src/asm/boot/boot.S:122    .text:0000000000000130 bootpack
+ src/asm/boot/boot.S:104    .text:00000000000000eb memcpy
+ src/asm/boot/boot.S:94     .text:00000000000000da skip
+ src/asm/boot/boot.S:114    .text:0000000000000110 GDT0
+
+NO UNDEFINED SYMBOLS
