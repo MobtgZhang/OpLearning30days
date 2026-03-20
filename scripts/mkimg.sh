@@ -64,6 +64,7 @@ trap 'rm -f "$STARTUP_NSHTMP"' EXIT
 # 应用用「当前卷上的程序路径」执行；load 只适用驱动，对 .efi 应用会报 not an image
 printf '%s\r\n' \
 	'@echo -off' \
+	'connect -r' \
 	'fs0:' \
 	'cd EFI\Boot' \
 	'bootx64.efi' \

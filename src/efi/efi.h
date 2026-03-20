@@ -289,4 +289,85 @@ typedef struct {
 	UINT8  Data4[8];
 } EFI_GUID;
 
+/* USB IO Protocol — 直接读取 USB HID 设备 */
+#define EFI_USB_IO_PROTOCOL_GUID \
+	{ 0x2B2F68D6, 0x0CD2, 0x44CF, \
+	  { 0x8E, 0x8B, 0xBB, 0xA2, 0x0B, 0x1B, 0x5B, 0x75 } }
+
+typedef struct {
+	UINT8  Length;
+	UINT8  DescriptorType;
+	UINT16 BcdUSB;
+	UINT8  DeviceClass;
+	UINT8  DeviceSubClass;
+	UINT8  DeviceProtocol;
+	UINT8  MaxPacketSize0;
+	UINT16 IdVendor;
+	UINT16 IdProduct;
+	UINT16 BcdDevice;
+	UINT8  StrManufacturer;
+	UINT8  StrProduct;
+	UINT8  StrSerialNumber;
+	UINT8  NumConfigurations;
+} __attribute__((packed)) EFI_USB_DEVICE_DESCRIPTOR;
+
+typedef struct {
+	UINT8  Length;
+	UINT8  DescriptorType;
+	UINT8  InterfaceNumber;
+	UINT8  AlternateSetting;
+	UINT8  NumEndpoints;
+	UINT8  InterfaceClass;
+	UINT8  InterfaceSubClass;
+	UINT8  InterfaceProtocol;
+	UINT8  Interface;
+} __attribute__((packed)) EFI_USB_INTERFACE_DESCRIPTOR;
+
+typedef struct {
+	UINT8  Length;
+	UINT8  DescriptorType;
+	UINT8  EndpointAddress;
+	UINT8  Attributes;
+	UINT16 MaxPacketSize;
+	UINT8  Interval;
+} __attribute__((packed)) EFI_USB_ENDPOINT_DESCRIPTOR;
+
+typedef enum {
+	EfiUsbDataIn  = 0,
+	EfiUsbDataOut = 1,
+	EfiUsbNoData  = 2
+} EFI_USB_DATA_DIRECTION;
+
+typedef struct EFI_USB_IO_PROTOCOL EFI_USB_IO_PROTOCOL;
+
+typedef EFI_STATUS (__attribute__((ms_abi)) *EFI_USB_IO_SYNC_INTERRUPT_TRANSFER)(
+	EFI_USB_IO_PROTOCOL *This, UINT8 DeviceEndpoint,
+	void *Data, UINTN *DataLength, UINTN Timeout, UINT32 *UsbStatus);
+
+typedef EFI_STATUS (__attribute__((ms_abi)) *EFI_USB_IO_GET_DEVICE_DESCRIPTOR)(
+	EFI_USB_IO_PROTOCOL *This, EFI_USB_DEVICE_DESCRIPTOR *Descriptor);
+
+typedef EFI_STATUS (__attribute__((ms_abi)) *EFI_USB_IO_GET_INTERFACE_DESCRIPTOR)(
+	EFI_USB_IO_PROTOCOL *This, EFI_USB_INTERFACE_DESCRIPTOR *Descriptor);
+
+typedef EFI_STATUS (__attribute__((ms_abi)) *EFI_USB_IO_GET_ENDPOINT_DESCRIPTOR)(
+	EFI_USB_IO_PROTOCOL *This, UINT8 EndpointIndex,
+	EFI_USB_ENDPOINT_DESCRIPTOR *Descriptor);
+
+struct EFI_USB_IO_PROTOCOL {
+	void *UsbControlTransfer;
+	void *UsbBulkTransfer;
+	void *UsbAsyncInterruptTransfer;
+	EFI_USB_IO_SYNC_INTERRUPT_TRANSFER UsbSyncInterruptTransfer;
+	void *UsbIsochronousTransfer;
+	void *UsbAsyncIsochronousTransfer;
+	EFI_USB_IO_GET_DEVICE_DESCRIPTOR UsbGetDeviceDescriptor;
+	void *UsbGetConfigDescriptor;
+	EFI_USB_IO_GET_INTERFACE_DESCRIPTOR UsbGetInterfaceDescriptor;
+	EFI_USB_IO_GET_ENDPOINT_DESCRIPTOR UsbGetEndpointDescriptor;
+	void *UsbGetStringDescriptor;
+	void *UsbGetSupportedLanguages;
+	void *UsbPortReset;
+};
+
 #endif /* EFI_H */

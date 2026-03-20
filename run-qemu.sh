@@ -33,10 +33,10 @@ fi
 
 echo "QEMU: 磁盘镜像 $IMG"
 echo "串口日志: COM1 -> 本终端（program LOG_STEP）"
-echo "鼠标: -usb -device usb-tablet → UEFI Absolute Pointer（与书中最后一天「可拖窗口」体验接近）"
-# q35 + IDE：OVMF 对固定硬盘需 GPT+ESP（见 scripts/mkimg.sh）
+echo "鼠标: xHCI + usb-tablet → UEFI Absolute Pointer（WaitForEvent 驱动，与书中拖窗口体验接近）"
+# q35 + xHCI：OVMF 对 xHCI 的驱动支持比 UHCI 更完善
 exec qemu-system-x86_64 -machine q35 -bios "$OVMF_CODE" \
-	-usb -device usb-tablet \
+	-device qemu-xhci -device usb-tablet \
 	-serial stdio \
 	-boot order=d \
 	-drive file="$IMG",format=raw,if=ide,media=disk,index=0 \

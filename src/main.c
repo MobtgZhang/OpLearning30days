@@ -5,6 +5,7 @@
 #include "log.h"
 #include "serial.h"
 #include "gop.h"
+
 #include "mouse.h"
 #include "haribote_gfx.h"
 #include "sheet.h"
